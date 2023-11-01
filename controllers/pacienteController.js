@@ -1,6 +1,6 @@
-import { handleServerError } from "../helpers/handleServerError";
+import { handleServerError } from "../helpers/handleServerError.js";
 import { prisma } from "..";
-import { comprobarPassword } from "../helpers/passwordFunctions";
+import { comprobarPassword } from "../helpers/passwordFunctions.js";
 import generarJWT from "../helpers/generarJWT";
 export async function crearPaciente(req, res) {
     try {

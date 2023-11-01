@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { handleServerError } from "../helpers/handleServerError";
+import { handleServerError } from "../helpers/handleServerError.js";
 import { prisma } from "..";
 import { PacienteInt } from "../types/ModelTypes";
-import { comprobarPassword } from "../helpers/passwordFunctions";
+import { comprobarPassword } from "../helpers/passwordFunctions.js";
 import generarJWT from "../helpers/generarJWT";
 import { ReqPaciente } from "../types/GeneralTypes";
 

@@ -14,7 +14,7 @@ datasource db {
 model doctor{
   id Int @id @default(autoincrement())
   nombre String
-  correo String
+  correo String @unique
   password String
   pacientes paciente[]
 }
