@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model doctor{
+  id Int @id @default(autoincrement())
+  nombre String
+  correo String
+  password String
+  pacientes paciente[]
+}
+
+model paciente{
+  id Int @id @default(autoincrement())
+  nombre String
+  correo String @unique
+  password String
+  doctorId Int?
+  doctor doctor? @relation(fields: [doctorId], references: [id])
+  notas nota[]
+  tipos_registro tipo_registro[]
+  registros registro[]
+  antecedentes antecedente[]
+
+}
+
+model nota{
+  id Int @id @default(autoincrement())
+  fecha DateTime
+  nota String
+  pacienteId Int
+  paciente paciente @relation(fields: [pacienteId], references: [id],onDelete: Cascade)
+}
+
+model antecedente{
+  id Int @id @default(autoincrement())
+  nombre String
+  descripcion String
+  fecha DateTime
+  pacienteId Int
+  paciente paciente  @relation(fields: [pacienteId], references: [id],onDelete: Cascade)
+  
+}
+
+
+
+model tipo_registro{
+  id Int @id @default(autoincrement())
+  nombre String
+  cuantitativo Boolean
+  descripcion String
+  unidad String?
+  pacienteId Int?
+  paciente paciente? @relation(fields: [pacienteId], references: [id],onDelete: Cascade)
+  registros registro[]
+}
+
+model registro{
+  id Int @id @default(autoincrement())
+  valor Float
+  tipoId Int
+  tipo tipo_registro @relation(fields: [tipoId], references: [id],onDelete: Cascade)
+  fecha DateTime
+  pacienteId Int
+  paciente paciente @relation(fields: [pacienteId], references: [id],onDelete: Cascade)
+
+}
