@@ -5,7 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "serve": "ngrok http --domain=desired-drake-strictly.ngrok-free.app 4000"
   },
   "keywords": [
     "sintomas"

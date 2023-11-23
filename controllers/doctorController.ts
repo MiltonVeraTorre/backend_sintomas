@@ -3,7 +3,7 @@
 // === Doctor
 
 import { Request, Response } from "express"
-import { prisma } from ".."
+import { prisma } from "../index.js"
 import { DoctorInt } from "../types/ModelTypes"
 import { ReqDoctor } from "../types/GeneralTypes"
 import { handleServerError } from "../helpers/handleServerError.js"

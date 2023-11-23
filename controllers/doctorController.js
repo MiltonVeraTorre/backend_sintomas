@@ -1,4 +1,4 @@
-import { prisma } from "..";
+import { prisma } from "../index.js";
 import { handleServerError } from "../helpers/handleServerError.js";
 import generarJWT from "../helpers/generarJWT.js";
 import { comprobarPassword } from "../helpers/passwordFunctions.js";

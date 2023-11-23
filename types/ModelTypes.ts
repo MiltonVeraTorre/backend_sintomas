@@ -9,7 +9,11 @@ export interface DoctorInt {
   export interface PacienteInt {
     id: number;
     nombre: string;
+    apellido:string
+    nacimiento:Date
+    genero:string
     correo: string;
+    telefono:string
     password: string;
     doctorId?: number | null;
     doctor?: DoctorInt | null;

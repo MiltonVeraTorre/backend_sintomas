@@ -46,15 +46,9 @@ const pacienteAuth = async (
         return res.status(404).json({ msg: error.message });
       }
 
-     
 
+      req.paciente = paciente as  PacienteInt
 
-
-
-      req.paciente = paciente as PacienteInt
-
-
-     
 
       return next();
     } catch (error) {

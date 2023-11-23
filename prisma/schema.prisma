@@ -22,7 +22,11 @@ model doctor{
 model paciente{
   id Int @id @default(autoincrement())
   nombre String
+  apellido String @default("")
+  nacimiento DateTime @default(now())
+  genero String @default("")
   correo String @unique
+  telefono String @default("")
   password String
   doctorId Int?
   doctor doctor? @relation(fields: [doctorId], references: [id])

@@ -19,6 +19,9 @@ const whitelist = [process.env.ADMIN_URL, process.env.USER_URL];
 
 let corsOptions: any;
 
+app.use(morgan("dev"));
+
+
 if (process.env.NODE_ENV === "development") {
   // Desarrollo
 

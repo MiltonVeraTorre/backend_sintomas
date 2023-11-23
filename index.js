@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import cors from "cors";
+import morgan from "morgan";
 import { PrismaClient } from "@prisma/client";
 import pacienteRoutes from "./routes/pacienteRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
@@ -9,6 +10,7 @@ const app = express();
 export const prisma = new PrismaClient();
 const whitelist = [process.env.ADMIN_URL, process.env.USER_URL];
 let corsOptions;
+app.use(morgan("dev"));
 if (process.env.NODE_ENV === "development") {
     corsOptions = {
         origin: true,

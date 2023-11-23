@@ -1,14 +1,15 @@
 import express from "express"
 
 import pacienteAuth from "../middleware/pacienteAuth.js"
-import { crearPaciente, crearTipoDato, eliminarAntecedente, eliminarTipoDato, loginPaciente, obtenerAntecedentes, obtenerTipoDato, obtenerTiposDato, perfilPaciente, registrarAntecedente, registrarDato, registrarNota } from "../controllers/pacienteController"
+import { crearPaciente, crearTipoDato, eliminarAntecedente, eliminarTipoDato, loginPaciente, obtenerAntecedentes, obtenerNotas, obtenerTipoDato, obtenerTiposDato, perfilPaciente, registrarAntecedente, registrarDato, registrarNota, updatePaciente } from "../controllers/pacienteController.js"
 
 const router = express.Router()
 
 // === Paciente
 
 router.post("/login",loginPaciente)
-router.post("/",pacienteAuth,crearPaciente)
+router.post("/",crearPaciente)
+router.put("/",pacienteAuth,updatePaciente)
 router.get("/perfil",pacienteAuth,perfilPaciente)
 
 
@@ -20,7 +21,7 @@ router.delete("/antecedente/:id",pacienteAuth,eliminarAntecedente)
 
 // === Tipos dato
 
-router.get("/tipos_dato",pacienteAuth,obtenerTiposDato)
+router.get("/tipos_dato/:cuantitativo",pacienteAuth,obtenerTiposDato)
 router.get("/tipo_dato/:id",pacienteAuth,obtenerTipoDato)
 router.post("/tipo_dato",pacienteAuth,crearTipoDato)
 router.delete("/tipo_dato/:id",pacienteAuth,eliminarTipoDato)
@@ -31,5 +32,6 @@ router.post("/dato",pacienteAuth,registrarDato)
 
 // == Notas
 router.post("/nota",pacienteAuth,registrarNota)
+router.get("/nota",pacienteAuth,obtenerNotas)
 
 export default router
