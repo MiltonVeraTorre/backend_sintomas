@@ -13,6 +13,10 @@ export async function crearPaciente(req, res) {
         if (pacienteExiste) {
             return res.status(400).json({ msg: "El usuario ya existe" });
         }
+        const numero = req.body.telefono;
+        if (isNaN(+numero)) {
+            return res.status(400).json({ msg: "El telefono debe ser un numero" });
+        }
         const paciente = await prisma.paciente.create({
             data: {
                 ...req.body,
@@ -68,8 +72,6 @@ export async function perfilPaciente(req, res) {
 }
 export async function updatePaciente(req, res) {
     const { paciente } = req;
-    console.log(paciente?.id);
-    console.log(req.body);
     try {
         const pacienteActualizado = await prisma.paciente.update({
             where: {
@@ -145,6 +147,9 @@ export async function obtenerTiposDato(req, res) {
                     orderBy: {
                         fecha: "desc"
                     },
+                    where: {
+                        pacienteId: paciente?.id
+                    },
                     take: 1
                 }
             }
@@ -152,9 +157,10 @@ export async function obtenerTiposDato(req, res) {
         const tipoDataUltimoRegistro = tiposDato.map((td) => ({
             ...td,
             registros: undefined,
-            ultimoRegistro: td.registros[0]?.valor ?? 0,
-            fechaUltimoRegistro: td.registros[0]?.fecha ?? new Date().toISOString()
+            ultimoRegistro: Math.round(td.registros[0]?.valor ?? 0),
+            fechaUltimoRegistro: td.registros[0]?.fecha.toISOString() ?? new Date().toISOString()
         }));
+        console.log(tipoDataUltimoRegistro);
         return res.json(tipoDataUltimoRegistro);
     }
     catch (error) {
@@ -178,6 +184,22 @@ export async function obtenerTipoDato(req, res) {
 export async function crearTipoDato(req, res) {
     const { paciente } = req;
     try {
+        const tipoDatoExiste = await prisma.tipo_registro.findFirst({
+            where: {
+                AND: [
+                    { nombre: { mode: "insensitive", equals: req.body.nombre } },
+                    {
+                        OR: [
+                            { pacienteId: paciente?.id },
+                            { pacienteId: null }
+                        ]
+                    }
+                ]
+            }
+        });
+        if (tipoDatoExiste) {
+            return res.status(400).json({ msg: "Ya existe un tipo de dato con ese nombre" });
+        }
         const tipoDato = await prisma.tipo_registro.create({
             data: {
                 ...req.body,
@@ -194,6 +216,14 @@ export async function crearTipoDato(req, res) {
 export async function eliminarTipoDato(req, res) {
     const { id } = req.params;
     try {
+        const tipoDato = await prisma.tipo_registro.findUnique({
+            where: {
+                id: +id
+            }
+        });
+        if (!tipoDato?.pacienteId) {
+            return res.status(400).json({ msg: "No se puede eliminar un tipo de dato que no sea personalizado" });
+        }
         await prisma.tipo_registro.delete({
             where: {
                 id: +id
@@ -208,7 +238,7 @@ export async function eliminarTipoDato(req, res) {
 export async function registrarDato(req, res) {
     const { paciente } = req;
     try {
-        await prisma.registro.create({
+        const registro = await prisma.registro.create({
             data: {
                 ...req.body,
                 pacienteId: paciente?.id,
@@ -220,16 +250,41 @@ export async function registrarDato(req, res) {
         return handleServerError(error, "Paciente", res);
     }
 }
-export async function registrarNota(req, res) {
+export async function obtenerDatos(req, res) {
+    const { tipo_id } = req.params;
     const { paciente } = req;
     try {
-        const nota = await prisma.nota.create({
+        const registros = await prisma.registro.findMany({
+            where: {
+                pacienteId: paciente?.id,
+                tipoId: +tipo_id
+            },
+            orderBy: {
+                fecha: "desc"
+            },
+            take: 10
+        });
+        console.log("Registros", registros);
+        return res.json(registros);
+    }
+    catch (error) {
+        return handleServerError(error, "Paciente", res);
+    }
+}
+export async function registrarNota(req, res) {
+    const { paciente } = req;
+    const { nota } = req.body;
+    console.log(nota);
+    try {
+        if (nota === "")
+            return res.status(400).json({ msg: "La nota no puede estar vacia" });
+        const notaRegistrada = await prisma.nota.create({
             data: {
                 ...req.body,
                 pacienteId: paciente?.id
             }
         });
-        return res.json(nota);
+        return res.json(notaRegistrada);
     }
     catch (error) {
         return handleServerError(error, "Paciente", res);
@@ -247,5 +302,30 @@ export async function obtenerNotas(req, res) {
     }
     catch (error) {
         return handleServerError(error, "Nota", res);
+    }
+}
+export async function eliminarNota(req, res) {
+    const { id } = req.params;
+    try {
+        await prisma.nota.delete({
+            where: {
+                id: +id
+            }
+        });
+        return res.json({ msg: "Nota eliminada correctamente" });
+    }
+    catch (error) {
+        return handleServerError(error, "Nota", res);
+    }
+}
+export async function obtenerDoctores(req, res) {
+    const { paciente } = req;
+    try {
+        const doctores = await prisma.doctor.findMany();
+        console.log(doctores);
+        return res.json(doctores);
+    }
+    catch (error) {
+        return handleServerError(error, "Doctor", res);
     }
 }

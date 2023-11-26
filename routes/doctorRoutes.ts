@@ -11,4 +11,8 @@ router.post("/login",loginDoctor)
 router.post("/",doctorAuth,crearDoctor)
 router.get("/perfil",doctorAuth,perfilDoctor)
 
+router.get("/paciente/:search",doctorAuth)
+router.get("/registros/:paciente_id",doctorAuth)
+router.get("/descargar/:paciente_id",doctorAuth)
+
 export default router

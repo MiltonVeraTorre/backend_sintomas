@@ -24,6 +24,12 @@ export async function crearPaciente(req:Request,res:Response){
             return res.status(400).json({msg:"El usuario ya existe"})
         }
 
+        // Verificamos que el numero no tenga letras
+        const numero = req.body.telefono as string
+        if(isNaN(+numero)){
+            return res.status(400).json({msg:"El telefono debe ser un numero"})
+        }
+
         // Si no existe entonces lo creamos
 
         const paciente = await prisma.paciente.create({
@@ -50,6 +56,8 @@ export async function loginPaciente(req:Request,res:Response){
     const {correo,password} = req.body as PacienteInt
 
     try {
+
+
         // Primero lo buscamos
         const paciente = await prisma.paciente.findFirst({
             where:{
@@ -97,9 +105,7 @@ export async function perfilPaciente(req:ReqPaciente,res:Response){
 
 export async function updatePaciente(req:ReqPaciente,res:Response){
     const {paciente} = req
-    
-    console.log(paciente?.id)
-console.log(req.body)
+
     
     try {
         const pacienteActualizado = await prisma.paciente.update({
@@ -194,6 +200,9 @@ export async function obtenerTiposDato(req:ReqPaciente,res:Response){
                     orderBy:{
                         fecha:"desc"
                     },
+                    where:{
+                        pacienteId:paciente?.id
+                    },
                     take:1
                 }
             }
@@ -205,9 +214,11 @@ export async function obtenerTiposDato(req:ReqPaciente,res:Response){
         const tipoDataUltimoRegistro = tiposDato.map((td)=>({
             ...td,
             registros:undefined,
-            ultimoRegistro:td.registros[0]?.valor ?? 0,
-            fechaUltimoRegistro: td.registros[0]?.fecha ?? new Date().toISOString()
+            ultimoRegistro:Math.round(td.registros[0]?.valor ?? 0),
+            fechaUltimoRegistro: td.registros[0]?.fecha.toISOString() ?? new Date().toISOString()
         }))
+
+        console.log(tipoDataUltimoRegistro)
 
         return res.json(tipoDataUltimoRegistro)
         
@@ -237,6 +248,26 @@ export async function crearTipoDato(req:ReqPaciente,res:Response){
     const {paciente} = req
     try {
 
+        // Validamos que no haya un tipo de dato con el mismo nombre
+
+        const tipoDatoExiste = await prisma.tipo_registro.findFirst({
+            where:{
+                AND:[
+                    {nombre:{mode:"insensitive",equals:req.body.nombre}},
+                    {
+                        OR:[
+                            {pacienteId:paciente?.id},
+                            {pacienteId:null}
+                        ]
+                    }
+                ]
+            }
+        })
+
+        if(tipoDatoExiste){
+            return res.status(400).json({msg:"Ya existe un tipo de dato con ese nombre"})
+        }
+
         const tipoDato = await prisma.tipo_registro.create({
             data:{
                 ...req.body,
@@ -255,6 +286,18 @@ export async function crearTipoDato(req:ReqPaciente,res:Response){
 export async function eliminarTipoDato(req:Request,res:Response){
     const {id} = req.params
     try {
+        // Verificamos que no se quiera eliminar un tipo de dato que sea con pacienteId null
+
+        const tipoDato = await prisma.tipo_registro.findUnique({
+            where:{
+                id:+id
+            }
+        })
+
+        if(!tipoDato?.pacienteId){
+            return res.status(400).json({msg:"No se puede eliminar un tipo de dato que no sea personalizado"})
+        }
+
         await prisma.tipo_registro.delete({
             where:{
                 id:+id
@@ -273,7 +316,7 @@ export async function registrarDato(req:ReqPaciente,res:Response){
     const {paciente} = req
 
     try {
-        await prisma.registro.create({
+        const registro = await prisma.registro.create({
             data:{
                 ...req.body,
                 pacienteId:paciente?.id,
@@ -289,20 +332,54 @@ export async function registrarDato(req:ReqPaciente,res:Response){
     }
 }
 
+export async function obtenerDatos(req:ReqPaciente,res:Response){
+    const {tipo_id} = req.params
+    const {paciente} = req
+
+    try {
+
+        // Obtenemos los ultimos 10 registros de ese tipo de dato del paciente
+        const registros = await prisma.registro.findMany({
+            where:{
+                pacienteId:paciente?.id,
+                tipoId:+tipo_id
+            },
+            orderBy:{
+                fecha:"desc"
+            },
+            take:10
+        })
+
+        console.log("Registros",registros)
+
+        return res.json(registros)
+        
+    } catch (error:any) {
+        return handleServerError(error,"Paciente",res)
+    }
+}
+
 // === Nota
 
 export async function registrarNota(req:ReqPaciente,res:Response){
     const {paciente} = req
+
+    const {nota} = req.body
+
+    console.log(nota)
+
     try {
 
-        const nota = await prisma.nota.create({
+        if(nota === "") return res.status(400).json({msg:"La nota no puede estar vacia"})
+
+        const notaRegistrada = await prisma.nota.create({
             data:{
                 ...req.body,
                 pacienteId:paciente?.id
             }
         })
 
-        return res.json(nota)
+        return res.json(notaRegistrada)
         
     } catch (error:any) {
         return handleServerError(error,"Paciente",res)
@@ -326,6 +403,39 @@ export async function obtenerNotas(req:ReqPaciente,res:Response){
         
     } catch (error:any) {
         return handleServerError(error,"Nota",res)
+    }
+}
+
+export async function eliminarNota(req:ReqPaciente,res:Response){
+    const {id} = req.params
+    try {
+        await prisma.nota.delete({
+            where:{
+                id:+id
+            }
+        })
+
+        return res.json({msg:"Nota eliminada correctamente"})
+    } catch (error:any) {
+        return handleServerError(error,"Nota",res)
+    }
+}
+
+export async function obtenerDoctores(req:ReqPaciente,res:Response){
+    const {paciente} = req
+
+    try {
+
+        // Obtenemos los doctores a elegir
+
+        const doctores = await prisma.doctor.findMany()
+
+        console.log(doctores)
+
+        return res.json(doctores)
+        
+    } catch (error:any) {
+        return handleServerError(error,"Doctor",res)
     }
 }
 

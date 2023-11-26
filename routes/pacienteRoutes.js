@@ -1,6 +1,6 @@
 import express from "express";
 import pacienteAuth from "../middleware/pacienteAuth.js";
-import { crearPaciente, crearTipoDato, eliminarAntecedente, eliminarTipoDato, loginPaciente, obtenerAntecedentes, obtenerNotas, obtenerTipoDato, obtenerTiposDato, perfilPaciente, registrarAntecedente, registrarDato, registrarNota, updatePaciente } from "../controllers/pacienteController.js";
+import { crearPaciente, crearTipoDato, eliminarAntecedente, eliminarNota, eliminarTipoDato, loginPaciente, obtenerAntecedentes, obtenerDatos, obtenerDoctores, obtenerNotas, obtenerTipoDato, obtenerTiposDato, perfilPaciente, registrarAntecedente, registrarDato, registrarNota, updatePaciente } from "../controllers/pacienteController.js";
 const router = express.Router();
 router.post("/login", loginPaciente);
 router.post("/", crearPaciente);
@@ -14,6 +14,9 @@ router.get("/tipo_dato/:id", pacienteAuth, obtenerTipoDato);
 router.post("/tipo_dato", pacienteAuth, crearTipoDato);
 router.delete("/tipo_dato/:id", pacienteAuth, eliminarTipoDato);
 router.post("/dato", pacienteAuth, registrarDato);
+router.get("/datos/:tipo_id", pacienteAuth, obtenerDatos);
 router.post("/nota", pacienteAuth, registrarNota);
 router.get("/nota", pacienteAuth, obtenerNotas);
+router.delete("/nota/:id", pacienteAuth, eliminarNota);
+router.get("/doctores", pacienteAuth, obtenerDoctores);
 export default router;
